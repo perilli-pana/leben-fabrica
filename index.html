@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Leben &middot; F&aacute;brica</title>
+<style>
+  :root{
+    --bg:#050404;
+    --ink:#ECE4DE;
+    --muted:#7C6F6A;
+    --line:#241c1c;
+    --red:#FF1622;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"Helvetica Neue",Arial,system-ui,sans-serif;
+    line-height:1.25;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+
+  /* ---- film grain + vignette ---- */
+  .grain,.vig{position:fixed;pointer-events:none}
+  .grain{
+    inset:-50%;width:200%;height:200%;z-index:60;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    opacity:.05;mix-blend-mode:screen;animation:grain 1.6s steps(4) infinite;
+  }
+  .vig{inset:0;z-index:55;background:radial-gradient(120% 90% at 50% 32%,transparent 42%,rgba(0,0,0,.55) 100%)}
+  @keyframes grain{
+    0%{transform:translate(0,0)}25%{transform:translate(-4%,3%)}
+    50%{transform:translate(3%,-3%)}75%{transform:translate(-3%,-2%)}100%{transform:translate(2%,3%)}
+  }
+
+  .wrap{position:relative;z-index:1;max-width:600px;margin:0 auto;padding:0 22px}
+
+  /* ---- reveal on scroll ---- */
+  .reveal{opacity:0;transform:translateY(26px);transition:opacity .7s ease,transform .7s ease}
+  .reveal.in{opacity:1;transform:none}
+
+  /* ---- masthead ---- */
+  .mast{min-height:60vh;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;padding:70px 0 40px}
+  .mast .eyebrow{font-family:"Helvetica Neue",Arial,sans-serif;font-weight:700;font-size:13px;letter-spacing:.42em;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
+  .mast h1{font-weight:900;letter-spacing:-.035em;line-height:.86;text-transform:uppercase;font-size:clamp(52px,17vw,96px)}
+  .mast h1 .amp{color:var(--red);text-shadow:0 0 22px rgba(255,22,34,.55)}
+
+  /* ---- cinematic title card ---- */
+  .card{text-align:center;padding:20vh 0 8vh}
+  .card h2{font-weight:900;text-transform:uppercase;letter-spacing:.04em;line-height:.9;font-size:clamp(44px,15vw,84px);color:var(--red);text-shadow:0 0 30px rgba(255,22,34,.45),0 0 4px rgba(255,22,34,.6)}
+
+  /* ---- hero promo ---- */
+  .promo{border:1px solid var(--line);border-radius:16px;padding:34px 26px;text-align:center;background:radial-gradient(90% 120% at 50% 0%,rgba(255,22,34,.09),transparent 70%)}
+  .promo .name{font-weight:900;letter-spacing:-.03em;line-height:.92;text-transform:uppercase;font-size:clamp(34px,10vw,52px)}
+  .promo .big{font:900 clamp(60px,20vw,110px)/.86 ui-monospace,"SF Mono",Menlo,monospace;font-variant-numeric:tabular-nums;letter-spacing:-.04em;margin-top:12px;color:var(--red);text-shadow:0 0 34px rgba(255,22,34,.5);animation:flick 5s infinite}
+  .promo .big small{font-size:.32em;vertical-align:.85em;font-weight:800}
+  @keyframes flick{0%,96%,100%{opacity:1}97%{opacity:.72}98%{opacity:1}98.5%{opacity:.85}}
+
+  /* ---- beer switch (manual) ---- */
+  .switch{display:flex;gap:8px;margin:0 auto 30px;max-width:340px}
+  .switch button{flex:1;font:700 12px/1 ui-monospace,"SF Mono",Menlo,monospace;letter-spacing:.16em;text-transform:uppercase;padding:13px;cursor:pointer;background:transparent;color:var(--muted);border:1px solid var(--line);border-radius:9px;transition:background .18s,color .18s,border-color .18s}
+  .switch button[aria-pressed="true"]{background:var(--red);color:#fff;border-color:var(--red);box-shadow:0 0 20px rgba(255,22,34,.4)}
+  .switch button:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+
+  /* ---- rows (grid = clean price column) ---- */
+  .list{list-style:none}
+  .row{display:grid;grid-template-columns:1fr auto;column-gap:14px;align-items:baseline;padding:16px 0;border-bottom:1px solid var(--line)}
+  .row:last-child{border-bottom:0}
+  .row .l{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;min-width:0}
+  .row .name{font-weight:800;font-size:20px;letter-spacing:-.01em;text-transform:uppercase}
+  .row .note{color:var(--muted);font-size:12.5px;font-weight:500}
+  .row .amt{font:800 20px/1 ui-monospace,"SF Mono",Menlo,monospace;font-variant-numeric:tabular-nums;letter-spacing:-.02em;white-space:nowrap;text-align:right;transition:color .18s}
+  .row.is-happy .amt{color:var(--red);text-shadow:0 0 16px rgba(255,22,34,.5)}
+  .amt::before{content:"$"}
+
+  .legend{font:500 12px/1.6 ui-monospace,"SF Mono",Menlo,monospace;color:var(--muted);margin-top:18px;text-align:center;letter-spacing:.03em}
+  .legend b{color:var(--ink)}
+
+  /* ---- compact lists ---- */
+  .grp{margin-top:30px}
+  .grp:first-child{margin-top:0}
+  .grp h3{font:700 12px/1 ui-monospace,"SF Mono",Menlo,monospace;letter-spacing:.26em;text-transform:uppercase;color:var(--red);margin-bottom:3px}
+  .grp .sub{font-size:11.5px;color:var(--muted);margin-bottom:8px;font-weight:500;letter-spacing:.04em;text-transform:uppercase}
+  .mini{list-style:none}
+  .mini li{display:grid;grid-template-columns:1fr auto;column-gap:14px;align-items:baseline;padding:11px 0;border-bottom:1px solid var(--line)}
+  .mini li:last-child{border-bottom:0}
+  .mini .l{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;min-width:0}
+  .mini .n{font-weight:700;font-size:16px}
+  .mini .o{color:var(--muted);font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.04em}
+  .mini .p{font:700 15px/1 ui-monospace,"SF Mono",Menlo,monospace;font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right}
+  .mini .p::before{content:"$"}
+
+  .foot{text-align:center;padding:22vh 0 14vh}
+  .foot .m{font-weight:900;text-transform:uppercase;letter-spacing:-.02em;font-size:clamp(30px,9vw,48px)}
+  .foot .m .amp{color:var(--red);text-shadow:0 0 22px rgba(255,22,34,.5)}
+  .foot .sm{font:600 11px/1 ui-monospace,"SF Mono",Menlo,monospace;letter-spacing:.4em;color:var(--muted);text-transform:uppercase;margin-top:18px}
+  .ig{display:inline-flex;align-items:center;gap:10px;margin-top:34px;padding:14px 24px;border:1px solid var(--line);border-radius:11px;color:var(--ink);text-decoration:none;font:700 12px/1 ui-monospace,"SF Mono",Menlo,monospace;letter-spacing:.16em;text-transform:uppercase;transition:border-color .2s,color .2s,box-shadow .2s,background .2s}
+  .ig:hover,.ig:focus-visible{border-color:var(--red);color:#fff;background:rgba(255,22,34,.1);box-shadow:0 0 22px rgba(255,22,34,.28);outline:none}
+  .ig svg{width:18px;height:18px}
+
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none!important}
+    .reveal{opacity:1;transform:none;transition:none}
+  }
+</style>
+</head>
+<body>
+
+<div class="grain" aria-hidden="true"></div>
+<div class="vig" aria-hidden="true"></div>
+
+<div class="wrap">
+
+  <!-- MASTHEAD -->
+  <header class="mast">
+    <div class="eyebrow">Bar de F&aacute;brica</div>
+    <h1>Leben<span class="amp">.</span></h1>
+  </header>
+
+  <!-- CERVEZAS -->
+  <div class="card reveal">
+    <h2>Cervezas</h2>
+  </div>
+
+  <div class="promo reveal">
+    <div class="name">American Lager</div>
+    <div class="big"><small>$</small>3.500</div>
+  </div>
+
+  <div class="reveal" style="margin-top:44px">
+    <div class="switch" role="group" aria-label="Precio de cervezas">
+      <button id="btnFull" aria-pressed="true">Precio full</button>
+      <button id="btnHappy" aria-pressed="false">Happy hour</button>
+    </div>
+
+    <ul class="list" id="beers">
+      <li class="row"><span class="l"><span class="name">Red Ale</span><span class="note">roja &middot; caramelo</span></span><span class="amt" data-full="6.000" data-happy="4.000">6.000</span></li>
+      <li class="row"><span class="l"><span class="name">American IPA</span><span class="note">dorada &middot; lupulada</span></span><span class="amt" data-full="6.000" data-happy="4.000">6.000</span></li>
+      <li class="row"><span class="l"><span class="name">Hazy IPA</span><span class="note">turbia &middot; tropical</span></span><span class="amt" data-full="6.000" data-happy="4.000">6.000</span></li>
+      <li class="row"><span class="l"><span class="name">Irish Stout</span><span class="note">negra</span></span><span class="amt" data-full="6.000" data-happy="4.000">6.000</span></li>
+    </ul>
+    <p class="legend">American Lager <b>siempre $3.500</b></p>
+  </div>
+
+  <!-- PARA COMER -->
+  <div class="card reveal">
+    <h2>Para comer</h2>
+  </div>
+
+  <div class="reveal">
+    <div class="grp">
+      <h3>Pizzas</h3>
+      <div class="sub">a la piedra</div>
+      <ul class="mini">
+        <li><span class="l"><span class="n">Muzzarella</span></span><span class="p">18.500</span></li>
+        <li><span class="l"><span class="n">Cuatro Quesos</span></span><span class="p">22.000</span></li>
+        <li><span class="l"><span class="n">Napolitana</span></span><span class="p">19.000</span></li>
+      </ul>
+    </div>
+
+    <div class="grp">
+      <h3>Empanadas</h3>
+      <div class="sub">fritas o al horno</div>
+      <ul class="mini">
+        <li><span class="l"><span class="n">Carne</span></span><span class="p">4.600</span></li>
+        <li><span class="l"><span class="n">Jam&oacute;n y Queso</span></span><span class="p">4.600</span></li>
+        <li><span class="l"><span class="n">Cuatro Quesos</span></span><span class="p">4.600</span></li>
+      </ul>
+    </div>
+
+    <div class="grp">
+      <h3>Para picar</h3>
+      <ul class="mini">
+        <li><span class="l"><span class="n">Papas Fritas Caseras</span></span><span class="p">13.200</span></li>
+        <li><span class="l"><span class="n">Papas Fritas Picantes</span></span><span class="p">13.750</span></li>
+        <li><span class="l"><span class="n">Teque&ntilde;os</span></span><span class="p">15.400</span></li>
+        <li><span class="l"><span class="n">Teque&ntilde;os Picantes</span></span><span class="p">16.000</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- TRAGOS -->
+  <div class="card reveal">
+    <h2>Tragos</h2>
+  </div>
+
+  <div class="reveal">
+    <div class="grp">
+      <h3>Verm&uacute; &amp; Aperitivos</h3>
+      <ul class="mini">
+        <li><span class="l"><span class="n">Verm&uacute; c/Soda</span></span><span class="p">7.000</span></li>
+        <li><span class="l"><span class="n">Cynar c/Soda</span></span><span class="p">7.000</span></li>
+        <li><span class="l"><span class="n">Fernet &amp; Coca</span></span><span class="p">7.500</span></li>
+        <li><span class="l"><span class="n">Americano</span><span class="o">campari &middot; carpano &middot; soda</span></span><span class="p">7.000</span></li>
+        <li><span class="l"><span class="n">Ferroviario</span><span class="o">carpano &middot; fernet &middot; soda</span></span><span class="p">7.500</span></li>
+        <li><span class="l"><span class="n">Campari &amp; T&oacute;nica</span></span><span class="p">7.500</span></li>
+        <li><span class="l"><span class="n">Campari &amp; Naranja</span></span><span class="p">7.500</span></li>
+        <li><span class="l"><span class="n">Aperol Spritz</span></span><span class="p">9.000</span></li>
+        <li><span class="l"><span class="n">Vodka &amp; Naranja</span></span><span class="p">7.000</span></li>
+      </ul>
+    </div>
+
+    <div class="grp">
+      <h3>Gin &amp; Cl&aacute;sicos</h3>
+      <ul class="mini">
+        <li><span class="l"><span class="n">Gin T&oacute;nica</span><span class="o">restinga</span></span><span class="p">9.000</span></li>
+        <li><span class="l"><span class="n">Negroni</span></span><span class="p">9.500</span></li>
+        <li><span class="l"><span class="n">Tom Collins</span></span><span class="p">8.500</span></li>
+      </ul>
+    </div>
+
+    <div class="grp">
+      <h3>Whisky</h3>
+      <ul class="mini">
+        <li><span class="l"><span class="n">Old Fashioned</span><span class="o">wild turkey 101</span></span><span class="p">12.500</span></li>
+        <li><span class="l"><span class="n">Manhattan</span><span class="o">wild turkey &middot; cinzano</span></span><span class="p">10.000</span></li>
+        <li><span class="l"><span class="n">Penicillin</span><span class="o">whisky &middot; miel &middot; jengibre</span></span><span class="p">10.000</span></li>
+      </ul>
+    </div>
+
+    <div class="grp">
+      <h3>Vino</h3>
+      <ul class="mini">
+        <li><span class="l"><span class="n">Copa de vino</span><span class="o">tinto o blanco &middot; pregunt&aacute; por la del d&iacute;a</span></span><span class="p">7.000</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <footer class="foot reveal">
+    <div class="m">Leben<span class="amp">.</span></div>
+    <div class="sm">F&aacute;brica</div>
+    <a class="ig" href="https://instagram.com/lebenbrewingco" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5.5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"/></svg>
+      @lebenbrewingco
+    </a>
+  </footer>
+
+</div>
+
+<script>
+  (function(){
+    var beers=document.getElementById('beers');
+    var full=document.getElementById('btnFull');
+    var happy=document.getElementById('btnHappy');
+    function set(mode){
+      var isHappy=mode==='happy';
+      full.setAttribute('aria-pressed',String(!isHappy));
+      happy.setAttribute('aria-pressed',String(isHappy));
+      beers.querySelectorAll('.row').forEach(function(row){
+        var amt=row.querySelector('.amt');
+        amt.textContent=amt.getAttribute(isHappy?'data-happy':'data-full');
+        row.classList.toggle('is-happy',isHappy);
+      });
+    }
+    full.addEventListener('click',function(){set('full')});
+    happy.addEventListener('click',function(){set('happy')});
+
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+    },{threshold:.15});
+    document.querySelectorAll('.reveal').forEach(function(el){ io.observe(el); });
+  })();
+</script>
+</body>
+</html>
